@@ -20,6 +20,9 @@ from __future__ import print_function
 
 import ast
 import re
+import sys
+
+import six
 
 from pasta.augment import errors
 from pasta.base import formatting as fmt
@@ -176,4 +179,27 @@ def replace_child(parent, node, replace_with):
 def has_docstring(node):
   return (hasattr(node, 'body') and node.body and
           isinstance(node.body[0], ast.Expr) and
-          isinstance(node.body[0].value, ast.Str))
+          is_str_node(node.body[0].value))
+
+
+# Python 3.8+ parses string literals as ast.Constant; ast.Str and its .s
+# attribute were removed in Python 3.14.
+_STR_ATTR = 'value' if sys.version_info >= (3, 8) else 's'
+
+
+def is_str_node(node):
+  """Returns True if the node is a string literal."""
+  if sys.version_info >= (3, 8):
+    return (isinstance(node, ast.Constant) and
+            isinstance(node.value, six.string_types))
+  return isinstance(node, ast.Str)
+
+
+def get_str_value(node):
+  """Returns the value of a string literal node."""
+  return getattr(node, _STR_ATTR)
+
+
+def set_str_value(node, value):
+  """Sets the value of a string literal node."""
+  setattr(node, _STR_ATTR, value)

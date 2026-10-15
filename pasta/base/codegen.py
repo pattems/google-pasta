@@ -23,6 +23,7 @@ import collections
 import six
 
 from pasta.base import annotate
+from pasta.base import ast_utils
 from pasta.base import formatting as fmt
 from pasta.base import fstring_utils
 
@@ -80,8 +81,8 @@ class Printer(annotate.BaseVisitor):
     if content is None:
       parts = []
       for val in node.values:
-        if isinstance(val, ast.Str):
-          parts.append(val.s)
+        if ast_utils.is_str_node(val):
+          parts.append(ast_utils.get_str_value(val))
         else:
           parts.append(fstring_utils.placeholder(len(parts)))
       content = repr(''.join(parts))
@@ -102,7 +103,7 @@ class Printer(annotate.BaseVisitor):
       content = '...'
     else:
       content = fmt.get(node, 'content')
-    self.code += content if content is not None else repr(node.s)
+    self.code += content if content is not None else repr(node.value)
     self.suffix(node)
 
   def token(self, value):

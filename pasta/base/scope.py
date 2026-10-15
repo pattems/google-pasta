@@ -22,6 +22,8 @@ import ast
 import collections
 import six
 
+from pasta.base import ast_utils
+
 # TODO: Support relative imports
 
 # Represents a reference to something external to the module.
@@ -145,8 +147,9 @@ class ScopeVisitor(ast.NodeVisitor):
     self.scope.define_name(node.arg, node)
 
     # PEP 484 forward reference type annotations
-    if hasattr(node, 'annotation') and isinstance(node.annotation, ast.Str):
-      name_parts = node.annotation.s.split('.')
+    if (hasattr(node, 'annotation') and
+        ast_utils.is_str_node(node.annotation)):
+      name_parts = ast_utils.get_str_value(node.annotation).split('.')
       # TODO: Fix this; the name may not be defined in the root scope.
       name = self.root_scope.forward_define_name(name_parts[0], node.annotation)
       for part in name_parts[1:]:
